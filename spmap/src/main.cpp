@@ -1,3 +1,5 @@
+//modifiyed by akira_you
+//original is : https://github.com/stereolabs/zed-examples/tree/master/spatial%20mapping
 ///////////////////////////////////////////////////////////////////////////
 //
 // Copyright (c) 2017, STEREOLABS.
@@ -19,27 +21,18 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-/******************************************************************************************
- ** This sample demonstrates a simple way to use the Spatial Mapping API with the ZED    **
- ** It show the left image and the current mesh generated on a wireframe mode            **
- ** on top of the image                                                                  **
- ** Spatial Mapping can be started and stopped with the Space Bar key                    **
- ******************************************************************************************/
- 
- 
-// Standard includes
-#include <stdio.h>    // standard (I/O library)
-#include <stdlib.h>   // standard library (set of standard C functions
-#include <math.h>     // Math library (Higher math functions )
+
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <vector> 
-// OpenGL includes
 #include <GL/glew.h>
 #include "GL/freeglut.h"
-
-// ZED includes
 #include <sl/Camera.hpp>
 
-// Sample includes
 #include "GLObject.hpp" // Utils to use GLSL Shader and mesh
 #include "utils.hpp"
 #include "cuda_gl_interop.h"
@@ -103,8 +96,16 @@ int initGL();
 void drawGL();
 void printGL(float x, float y, char *string);
 void printHelp();
+sl::Transform rot_for_gl; //rotate matrix for OpenGL vs ROS
+    
 
 int main(int argc, char** argv) {
+  rot_for_gl.setZeros();
+  rot_for_gl.r00=1;
+  rot_for_gl.r12=1;
+  rot_for_gl.r21=-1;
+  rot_for_gl.m31=1;
+  
   // Init GLUT window
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
@@ -114,9 +115,9 @@ int main(int argc, char** argv) {
   // Setup configuration parameters for the ZED    
   sl::InitParameters parameters;
   if (argc > 1) parameters.svo_input_filename = argv[1];
-  parameters.depth_mode = sl::DEPTH_MODE_PERFORMANCE; // Use QUALITY depth mode to improve mapping results
-  parameters.coordinate_units = sl::UNIT_METER;
-  parameters.coordinate_system = sl::COORDINATE_SYSTEM_RIGHT_HANDED_Y_UP; // OpenGL coordinates system
+  parameters.depth_mode = sl::DEPTH_MODE_MEDIUM; // :DEPTH_MODE_PERFORMANCE | DEPTH_MODE_MEDIUM |DEPTH_MODE_QUALITY
+  parameters.coordinate_units = sl::UNIT_METER; //ROS unit system
+  parameters.coordinate_system = sl::COORDINATE_SYSTEM_RIGHT_HANDED_Z_UP; // ROS coordinates system
 
   // Open the ZED
   sl::ERROR_CODE err = zed_.open(parameters);
@@ -446,7 +447,7 @@ void drawGL() {
   if (mesh_.triangles.size() && (tracking_state==sl::TRACKING_STATE_OK)) {
     glDisable(GL_TEXTURE_2D);
     // Send the projection and the Pose to the GLSL shader to make the projection of the 2D image.
-    sl::Transform vpMatrix = sl::Transform::transpose(camera_projection * sl::Transform::inverse(pose_.pose_data));
+    sl::Transform vpMatrix = sl::Transform::transpose(camera_projection *rot_for_gl* sl::Transform::inverse(pose_.pose_data));
     glUseProgram(shader_mesh->getProgramId());
     glLineWidth(1.0);
     glUniformMatrix4fv(shMVPMatrixLoc_, 1, GL_FALSE, vpMatrix.m);
@@ -456,11 +457,12 @@ void drawGL() {
     mesh_object->draw(GL_TRIANGLES);
     glUseProgram(0);
   }
+  //Draw tracking line
   if (tlog_.size() && (tracking_state==sl::TRACKING_STATE_OK)) {
     glColor3f(1.0, 1.0, 0.0);
     glLineWidth(3.0);
     glBegin(GL_LINE_STRIP);
-    sl::Transform vpMatrix = camera_projection * sl::Transform::inverse(pose_.pose_data);
+    sl::Transform vpMatrix = camera_projection *rot_for_gl* sl::Transform::inverse(pose_.pose_data);
     sl::Transform tmp;
     tmp.setZeros();
     tmp.r00=1;
