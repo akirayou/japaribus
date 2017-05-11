@@ -509,33 +509,20 @@ void drawGL() {
 
   // show actions
   glColor4f(0.25f, 0.99f, 0.25f, 1.f);
-  if (!mapping_is_started)
-    printGL(-0.99f, 0.9f, "* Press Space Bar to activate Spatial Mapping.");
-  else
-    printGL(-0.99f, 0.9f, "* Press Space Bar to stop spatial mapping.");
 
   // show mapping state
-  if ((tracking_state == sl::TRACKING_STATE_OK)) {
-    sl::SPATIAL_MAPPING_STATE state = zed_.getSpatialMappingState();
-    if (state == sl::SPATIAL_MAPPING_STATE_OK || state == sl::SPATIAL_MAPPING_STATE_INITIALIZING) {
-      glColor4f(0.25f, 0.99f, 0.25f, 1.f);
-      printGL(-0.99f, 0.83f, (char*)(std::string("** ") + sl::spatialMappingState2str(state)).c_str());
-    } else if (state == sl::SPATIAL_MAPPING_STATE_NOT_ENABLED) {
-      glColor4f(0.55f, 0.65f, 0.55f, 1.f);
-      printGL(-0.99f, 0.83f, (char*)(std::string("** ") + sl::spatialMappingState2str(state)).c_str());
-    } else {
-      glColor4f(0.95f, 0.25f, 0.25f, 1.f);
-      printGL(-0.99f, 0.83f, (char*)(std::string("** ") + sl::spatialMappingState2str(state)).c_str());
-    }
+
+  sl::SPATIAL_MAPPING_STATE state = zed_.getSpatialMappingState();
+  if (state == sl::SPATIAL_MAPPING_STATE_OK || state == sl::SPATIAL_MAPPING_STATE_INITIALIZING) {
+    glColor4f(0.25f, 0.99f, 0.25f, 1.f);
+  } else if (state == sl::SPATIAL_MAPPING_STATE_NOT_ENABLED) {
+    glColor4f(0.55f, 0.65f, 0.55f, 1.f);
   } else {
-    if (mapping_is_started) {
-      glColor4f(0.95f, 0.25f, 0.25f, 1.f);
-      printGL(-0.99f, 0.83f, (char*)(std::string("** ") + sl::trackingState2str(tracking_state)).c_str());
-    } else {
-      glColor4f(0.55f, 0.65f, 0.55f, 1.f);
-      printGL(-0.99f, 0.83f, (char*)(std::string("** ") + sl::spatialMappingState2str(sl::SPATIAL_MAPPING_STATE_NOT_ENABLED)).c_str());
-    }
+    glColor4f(0.95f, 0.25f, 0.25f, 1.f);
   }
+  printGL(-0.99f, 0.90f, (char*)(std::string("** ") + sl::spatialMappingState2str(state)).c_str());
+  printGL(-0.99f, 0.96f, (char*)(std::string("** ") + sl::trackingState2str(tracking_state)).c_str());
+
   // Increment count and swap buffers
   grab_count++;
   glutSwapBuffers();
@@ -546,12 +533,6 @@ void drawGL() {
  **/
 void keyPressedCallback(unsigned char c, int x, int y) {
   switch (c) {
-  case 32: //space bar id	
-    if (!mapping_is_started) // User press the space bar and spatial mapping is not started 
-      startMapping();		
-    else // User press the space bar and spatial mapping is started 
-      stopMapping();	
-    break;
   case 's':
     if (!mapping_is_started)startMapping();
     break;
@@ -580,6 +561,14 @@ void keyPressedCallback(unsigned char c, int x, int y) {
 void printHelp()
 {
   std::cout << "*************************************************************" << std::endl;
-  std::cout << "**      Press the Space Bar key to start and stop          **" << std::endl;
+  std::cout << "**   s -- start spatial mapping                            **" << std::endl;
+  std::cout << "**   t -- start camera trajectory loging                   **" << std::endl;
+  std::cout << "**   b -- stop 's' and 't'                                 **" << std::endl;
+  std::cout << "**   q -- end this program                                 **" << std::endl;
+  std::cout << "**                                                         **" << std::endl;
+  std::cout << "**   output file                                           **" << std::endl;
+  std::cout << "**   obj_mesh.obj and obj_mesh*.png: 3D mesh data of map   **" << std::endl;
+  std::cout << "**   tlog.xyz: trajectory log                              **" << std::endl;
+  std::cout << "**   now.area: area file for ZED SDK                       **" << std::endl;
   std::cout << "*************************************************************" << std::endl;
 }
