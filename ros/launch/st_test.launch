@@ -1,0 +1,25 @@
+<launch>
+  <arg name="pi/2" value="1.5707963267948966" />
+  <arg name="optical_rotate" value="0 0 0 -$(arg pi/2) 0 -$(arg pi/2) " />
+  <arg name="optical_rotate_n" value="0 0 0 0 0 0" />
+
+
+
+  <node name="$(anon tf_mesh_map)"
+	pkg="tf" type="static_transform_publisher"
+	args="0 0 0.5 0 0 0 world mesh_map 100" /> <!-- correct Z base line offset (just for view) -->
+  <node name="$(anon tf_map)"
+	pkg="tf" type="static_transform_publisher"
+	args="0 0 0 0 0 0 world map 100" />
+  
+  <node name="$(anon tf_bus)"
+    pkg="tf" type="static_transform_publisher"
+    args="0 0 0 0 0 0  world bus 100" />
+  <node name="$(anon st_pub)"
+	pkg="st_pub" type="st_pub_node" />
+
+
+  <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find st_pub)/data/st.rviz" />
+	
+
+</launch>

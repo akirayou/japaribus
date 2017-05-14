@@ -114,8 +114,9 @@ int main(int argc, char** argv) {
 
   // Setup configuration parameters for the ZED    
   sl::InitParameters parameters;
+
   if (argc > 1) parameters.svo_input_filename = argv[1];
-  parameters.depth_mode = sl::DEPTH_MODE_MEDIUM; // :DEPTH_MODE_PERFORMANCE | DEPTH_MODE_MEDIUM |DEPTH_MODE_QUALITY
+  parameters.depth_mode = sl::DEPTH_MODE_QUALITY; // :DEPTH_MODE_PERFORMANCE | DEPTH_MODE_MEDIUM |DEPTH_MODE_QUALITY
   parameters.coordinate_units = sl::UNIT_METER; //ROS unit system
   parameters.coordinate_system = sl::COORDINATE_SYSTEM_RIGHT_HANDED_Z_UP; // ROS coordinates system
 
@@ -132,7 +133,7 @@ int main(int argc, char** argv) {
   spatial_mapping_params.resolution_meter = sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::RESOLUTION_LOW);
   spatial_mapping_params.save_texture =true;
   filter_params.set(sl::MeshFilterParameters::FILTER_LOW);
-    
+  spatial_mapping_params.max_memory_usage=6*1024;
   // Initialize OpenGL
   int res = initGL();
   if (res != 0) {
