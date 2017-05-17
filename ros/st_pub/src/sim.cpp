@@ -1,3 +1,14 @@
+/*
+get "target"/TF for get direction 
+get "bus"/TF as me
+set "bus"/TF as new my position
+
+publish "road clean message" for dummy input(must be switched off )
+
+
+ */
+
+
 #include "ros/ros.h"
 #include <ros/package.h>
 #include <sstream>
@@ -10,42 +21,6 @@
 #include <geometry_msgs/Vector3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-static std::vector< geometry_msgs::Vector3> tlog;
-static int tlogIdx=0;
-void loadTlog(void){
-  std::string path = ros::package::getPath("st_pub");
-  path+="/data/tlog.xyz"; 
-  std::ifstream f;
-  f.open(path.c_str(), std::ios::in);
-  while (!f.eof()){
-    geometry_msgs::Vector3 p;    
-    f >> p.x >>p.y >>p.z;
-    if(!f.good())break;
-    p.z*=0;
-    tlog.push_back(p);
-  }
-  tlogIdx=tlog.size()/2;
-}
-void nextTlog( tf2_ros::TransformBroadcaster  & br,int step=1){
-  if(tlog.empty())return;
-
-  tlogIdx+=step;
-  if(tlog.size()<=tlogIdx)tlogIdx=0;
-  
-  geometry_msgs::TransformStamped brtf; 
-  brtf.header.stamp = ros::Time::now();
-  brtf.header.frame_id = "world";
-  brtf.child_frame_id ="target";
-  brtf.transform.translation.x = tlog[tlogIdx].x;
-  brtf.transform.translation.y = tlog[tlogIdx].y;
-  brtf.transform.translation.z = 0.0;
-  brtf.transform.rotation.x = 0;
-  brtf.transform.rotation.y = 0;
-  brtf.transform.rotation.z = 0;
-  brtf.transform.rotation.w = 1;
-  br.sendTransform(brtf);
-
-}
 
 void initBus(tf2_ros::TransformBroadcaster  & br){
   geometry_msgs::TransformStamped brtf; 
@@ -69,11 +44,9 @@ int main(int argc, char **argv)
 
   ros::init(argc, argv, "sim");
   ros::NodeHandle node_handle;
-  loadTlog();
   ros::Rate loop_rate(30);
   static tf2_ros::TransformBroadcaster br;
   initBus(br);
-  nextTlog(br,0);
 
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener tfl(tfBuffer);
@@ -93,21 +66,11 @@ int main(int argc, char **argv)
     catch (tf2::TransformException &ex) {
       ROS_WARN("%s",ex.what());
       initBus(br);
-      nextTlog(br,0);
       ros::Duration(1.0).sleep();
       continue;
     }
     
-    //skip next pos
-    if(hypot(tf.transform.translation.x,tf.transform.translation.y)<0.5){
-      nextTlog(br,1);
-      brtf.header.stamp = ros::Time::now();
-      br.sendTransform(brtf);//need dummy bus pos for listen  bus to target
-      ros::spinOnce();
-      continue;
-    }else{
-      nextTlog(br,0);
-    }
+
     //target direction
     double d = -1* atan2(tf.transform.translation.x,
 		      tf.transform.translation.y);

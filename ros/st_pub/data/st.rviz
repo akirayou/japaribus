@@ -55,7 +55,7 @@ Visualization Manager:
       Marker Topic: /marker_bus
       Name: Marker
       Namespaces:
-        {}
+        static_marker: true
       Queue Size: 100
       Value: true
     - Class: rviz/Marker
@@ -79,9 +79,13 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
+        bus:
+          Value: true
         map:
           Value: true
         mesh_map:
+          Value: true
+        target:
           Value: true
         world:
           Value: true
@@ -92,16 +96,20 @@ Visualization Manager:
       Show Names: true
       Tree:
         world:
+          bus:
+            {}
           map:
             {}
           mesh_map:
+            {}
+          target:
             {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
-    Fixed Frame: map
+    Background Color: 135; 107; 51
+    Fixed Frame: bus
     Frame Rate: 30
   Name: root
   Tools:
@@ -122,24 +130,24 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.469799
+      Distance: 8.76086617
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0
-        Y: 0
-        Z: 0
+        X: 1.23177063
+        Y: 3.34418344
+        Z: 0.79564929
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.16479671
+      Pitch: 0.244796008
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 4.94040632
+      Yaw: 4.74540615
     Saved: ~
 Window Geometry:
   Displays:
@@ -157,5 +165,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 48
-  Y: 31
+  X: 285
+  Y: 153

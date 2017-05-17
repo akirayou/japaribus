@@ -16,7 +16,9 @@
   <node name="$(anon st_pub)"
 	pkg="st_pub" type="st_pub_node" />
   <node name="$(anon st_pub_sim)"
-	pkg="st_pub" type="sim" output="screen" />
+	pkg="st_pub" type="st_pub_sim" output="screen" />
+  <node name="$(anon st_pub_plan)"
+	pkg="st_pub" type="st_pub_plan" output="screen" />
 
 
   <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find st_pub)/data/st.rviz" />

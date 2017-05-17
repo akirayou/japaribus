@@ -78,6 +78,7 @@ static const int hWnd = 720;
 // Spatial Mapping status
 bool mapping_is_started = false;
 bool tlog_is_started = false; //tracking log for make cource
+bool reset_tracking = false;
 // Utils
 int grab_count;
 
@@ -116,7 +117,7 @@ int main(int argc, char** argv) {
   sl::InitParameters parameters;
 
   if (argc > 1) parameters.svo_input_filename = argv[1];
-  parameters.depth_mode = sl::DEPTH_MODE_QUALITY; // :DEPTH_MODE_PERFORMANCE | DEPTH_MODE_MEDIUM |DEPTH_MODE_QUALITY
+  parameters.depth_mode = sl::DEPTH_MODE_MEDIUM; // :DEPTH_MODE_PERFORMANCE | DEPTH_MODE_MEDIUM |DEPTH_MODE_QUALITY
   parameters.coordinate_units = sl::UNIT_METER; //ROS unit system
   parameters.coordinate_system = sl::COORDINATE_SYSTEM_RIGHT_HANDED_Z_UP; // ROS coordinates system
 
@@ -216,6 +217,11 @@ void run(){
 
     // Get the pose data for future use (projection of the mesh in the current image)
     tracking_state = zed_.getPosition(pose_);
+    if((tracking_state==sl::TRACKING_STATE_OK)&&reset_tracking){
+      reset_tracking=false;
+      zed_.resetTracking(pose_.pose_data);
+    }
+  
     if((tracking_state==sl::TRACKING_STATE_OK)&&(tlog_is_started)){
       tlog_.push_back(pose_.getTranslation());
     }
@@ -536,6 +542,9 @@ void keyPressedCallback(unsigned char c, int x, int y) {
   switch (c) {
   case 's':
     if (!mapping_is_started)startMapping();
+    break;
+  case 'r':
+    reset_tracking=true;
     break;
   case 't':
     if (!tlog_is_started)startTlog();
