@@ -1,18 +1,26 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(st_pub)
+project(zed_sensor)
 
 ## Add support for C++11, supported in ROS Kinetic and newer
-# add_definitions(-std=c++11)
+add_definitions(-std=c++11)
+
+
+SET(CUDA_VERSION "8.0")
+find_package(CUDA ${CUDA_VERSION} REQUIRED)
+find_package(ZED 2.0 REQUIRED)
+SET(OCV_VERSION "3.1")
+find_package(OpenCV ${OCV_VERSION} COMPONENTS core highgui imgproc REQUIRED)
+
+
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  image_transport
   roscpp
   roslib
-  rospy
-  std_msgs
-  tf2
+  sensor_msgs
   tf2_ros
 )
 
@@ -73,7 +81,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   std_msgs
+#   sensor_msgs
 # )
 
 ################################################
@@ -107,8 +115,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES st_pub
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+#  LIBRARIES zed_sensor
+#  CATKIN_DEPENDS image_transport roscpp roslib sensor_msgs tf2_ros
 #  DEPENDS system_lib
 )
 
@@ -121,11 +129,14 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${CUDA_INCLUDE_DIRS}
+  ${ZED_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/st_pub.cpp
+#   src/${PROJECT_NAME}/zed_sensor.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -136,11 +147,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node  src/st_pub_node.cpp)
-add_executable(${PROJECT_NAME}_sim   src/sim.cpp)
-add_executable(${PROJECT_NAME}_bus_joy   src/bus_joy.cpp)
-add_executable(${PROJECT_NAME}_bus_cont   src/bus_cont.cpp)
-add_executable(${PROJECT_NAME}_plan  src/plan.cpp)
+
+add_executable(${PROJECT_NAME}_node src/zed_sensor_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,19 +162,11 @@ add_executable(${PROJECT_NAME}_plan  src/plan.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
-   ${catkin_LIBRARIES}
-)
-target_link_libraries(${PROJECT_NAME}_sim
-   ${catkin_LIBRARIES}
-)
-target_link_libraries(${PROJECT_NAME}_bus_joy
-   ${catkin_LIBRARIES}
-)
-target_link_libraries(${PROJECT_NAME}_bus_cont
-   ${catkin_LIBRARIES}
-)
-target_link_libraries(${PROJECT_NAME}_plan
-   ${catkin_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${ZED_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+  ${CUDA_LIBRARIES} ${CUDA_nppi_LIBRARY} ${CUDA_npps_LIBRARY}
+
 )
 
 #############
@@ -209,7 +209,7 @@ target_link_libraries(${PROJECT_NAME}_plan
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_st_pub.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_zed_sensor.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

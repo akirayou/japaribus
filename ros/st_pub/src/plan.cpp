@@ -85,7 +85,7 @@ int main(int argc, char **argv)
     }
     
     //skip next pos
-    if(hypot(tf.transform.translation.x-nowX,tf.transform.translation.y-nowY)<0.5){
+    if(hypot(tf.transform.translation.x-nowX,tf.transform.translation.y-nowY)<0.8){
       nextTlog(br,1,false);
       ros::spinOnce();
       continue;
