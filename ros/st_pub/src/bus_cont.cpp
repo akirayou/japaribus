@@ -21,9 +21,22 @@ set direc and acc
 #include <geometry_msgs/Vector3.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <geometry_msgs/Twist.h>
-
-
-
+#include <std_msgs/UInt16.h>
+double oldDir=0;
+bool isSafe=false;
+ros::Publisher cmd_velPub;
+void dangerCallback(const std_msgs::UInt16 msg){
+  geometry_msgs::Twist cmd;
+  cmd.linear.x  = cmd.angular.z = 0;
+  if(9<msg.data){
+    isSafe=false;   
+    cmd.linear.x  = 0;
+    cmd.angular.z = oldDir;
+    cmd_velPub.publish(cmd);
+  }else{
+    isSafe=true;
+  }
+}
 
 void initBus(tf2_ros::TransformBroadcaster  & br){
   geometry_msgs::TransformStamped brtf; 
@@ -40,12 +53,10 @@ void initBus(tf2_ros::TransformBroadcaster  & br){
   br.sendTransform(brtf);
 }
 
-
-
 int main(int argc, char **argv)
 {
 
-  ros::init(argc, argv, "sim");
+  ros::init(argc, argv, "bus_cont");
   ros::NodeHandle node_handle;
   ros::Rate loop_rate(30);
   static tf2_ros::TransformBroadcaster br;
@@ -55,7 +66,8 @@ int main(int argc, char **argv)
   tf2_ros::TransformListener tfl(tfBuffer);
   geometry_msgs::TransformStamped tf;
   geometry_msgs::TransformStamped brtf; 
-  ros::Publisher cmd_velPub = node_handle.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+  cmd_velPub = node_handle.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+  ros::Subscriber danger_sub = node_handle.subscribe("danger_level",2,dangerCallback);
   geometry_msgs::Twist cmd;
   cmd.linear.x  = cmd.angular.z = 0;
   
@@ -86,8 +98,8 @@ int main(int argc, char **argv)
     tf2::Transform  tr;
     tf2::fromMsg(brtf.transform,tr);
     
-    cmd.linear.x  = 1;
-    cmd.angular.z = d;
+    cmd.linear.x  = (isSafe)?1:0;
+    cmd.angular.z = oldDir=d;
     cmd_velPub.publish(cmd);
     
     ros::spinOnce();

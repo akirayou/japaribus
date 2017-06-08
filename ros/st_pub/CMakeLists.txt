@@ -141,6 +141,7 @@ add_executable(${PROJECT_NAME}_sim   src/sim.cpp)
 add_executable(${PROJECT_NAME}_bus_joy   src/bus_joy.cpp)
 add_executable(${PROJECT_NAME}_bus_cont   src/bus_cont.cpp)
 add_executable(${PROJECT_NAME}_plan  src/plan.cpp)
+add_executable(${PROJECT_NAME}_cont_to_servo  src/cont_to_servo.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -168,7 +169,9 @@ target_link_libraries(${PROJECT_NAME}_bus_cont
 target_link_libraries(${PROJECT_NAME}_plan
    ${catkin_LIBRARIES}
 )
-
+target_link_libraries(${PROJECT_NAME}_cont_to_servo
+   ${catkin_LIBRARIES}
+)
 #############
 ## Install ##
 #############

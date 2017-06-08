@@ -9,6 +9,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/distortion_models.h>
+#include  <std_msgs/UInt16.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -169,6 +170,7 @@ void publishCamInfo(sensor_msgs::CameraInfoPtr cam_info_msg, ros::Publisher pub_
 ///////////////////////
 //Collision detecotor
 ///////////////////////
+ros::Publisher danger_pub;
 void depthHook(cv::Mat &tmp)
 {
   cv::Size s = tmp.size();
@@ -187,13 +189,18 @@ void depthHook(cv::Mat &tmp)
           shortCount++;
       }
     }
+
+  std_msgs::UInt16 msg;
+  msg.data=0;
   if (min < 0.5)
   {
+    msg.data=1;
     if(shortCount>10){ //Danger Stop
-
+      msg.data=10;
     }
     ROS_INFO_STREAM("depth " << min << "-" << max);
   }
+  danger_pub.publish(msg);
 }
 int main(int argc, char **argv)
 {
@@ -202,12 +209,15 @@ int main(int argc, char **argv)
   ros::NodeHandle node_handle;
   ros::Rate loop_rate(30);
   ros::Publisher pub_rgb_cam_info, pub_depth_cam_info;
+  
   image_transport::Publisher pub_rgb, pub_depth;
   image_transport::ImageTransport it_zed(node_handle);
   pub_rgb = it_zed.advertise("bus_cam/rgb/img", 1);     //rgb
   pub_depth = it_zed.advertise("bus_cam/depth/img", 1); //depth
   pub_rgb_cam_info = node_handle.advertise<sensor_msgs::CameraInfo>("bus_cam/rgb/camera_info", 1);
   pub_depth_cam_info = node_handle.advertise<sensor_msgs::CameraInfo>("bus_cam/depth/camera_info", 1);
+  
+  danger_pub = node_handle.advertise<std_msgs::UInt16>("danger_level", 10); 
 
   sensor_msgs::CameraInfoPtr depth_cam_info_msg(new sensor_msgs::CameraInfo());
   sensor_msgs::CameraInfoPtr rgb_cam_info_msg(new sensor_msgs::CameraInfo());
