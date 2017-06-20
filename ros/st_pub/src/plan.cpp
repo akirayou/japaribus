@@ -78,7 +78,7 @@ int main(int argc, char **argv)
       tf = tfBuffer.lookupTransform("world", "bus",ros::Time(0));
     }
     catch (tf2::TransformException &ex) {
-      ROS_WARN("%s",ex.what());
+      ROS_WARN("IN plan.cc : %s",ex.what());
       nextTlog(br,0);
       ros::Duration(1.0).sleep();
       continue;

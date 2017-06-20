@@ -23,8 +23,6 @@
 
 
 
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -38,6 +36,29 @@
 #include "cuda_gl_interop.h"
 
 
+const int confidenceThresh=100; //0-100 0 is less depth point
+
+
+void setInitParam(sl::InitParameters &parameters){
+  parameters.depth_mode = sl::DEPTH_MODE_QUALITY; // :DEPTH_MODE_PERFORMANCE | DEPTH_MODE_MEDIUM |DEPTH_MODE_QUALITY
+  parameters.coordinate_units = sl::UNIT_METER; //ROS unit system
+  parameters.coordinate_system = sl::COORDINATE_SYSTEM_RIGHT_HANDED_Z_UP; // ROS coordinates system
+}
+void setSpParam(sl::SpatialMappingParameters &spatial_mapping_params)
+{
+  spatial_mapping_params.range_meter.first = 1;// sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::RANGE_FAR);
+  spatial_mapping_params.range_meter.second = 10;// sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::RANGE_FAR);
+  spatial_mapping_params.resolution_meter =0.2;// sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::RESOLUTION_LOW);
+  spatial_mapping_params.save_texture =false;
+  spatial_mapping_params.max_memory_usage=10*1024;
+  
+}
+void setFilterParam(sl::MeshFilterParameters & filter_params){
+  filter_params.set(sl::MeshFilterParameters::FILTER_LOW);
+}
+void setRuntimeParam(sl::RuntimeParameters & rt_param){
+  rt_param.sensing_mode=sl::SENSING_MODE_STANDARD;
+}
 /// ZED object (camera, mesh, pose)
 sl::Camera zed_; //handle to ZED Camera
 sl::Mat left_image; //sl::Mat to handle a image on gpu
@@ -117,10 +138,9 @@ int main(int argc, char** argv) {
   sl::InitParameters parameters;
 
   if (argc > 1) parameters.svo_input_filename = argv[1];
-  parameters.depth_mode = sl::DEPTH_MODE_MEDIUM; // :DEPTH_MODE_PERFORMANCE | DEPTH_MODE_MEDIUM |DEPTH_MODE_QUALITY
-  parameters.coordinate_units = sl::UNIT_METER; //ROS unit system
-  parameters.coordinate_system = sl::COORDINATE_SYSTEM_RIGHT_HANDED_Z_UP; // ROS coordinates system
+  setInitParam(parameters);
 
+  
   // Open the ZED
   sl::ERROR_CODE err = zed_.open(parameters);
   if (err != sl::ERROR_CODE::SUCCESS) {
@@ -130,12 +150,9 @@ int main(int argc, char** argv) {
   }
 
   // Configure Spatial Mapping and filtering parameters
-  spatial_mapping_params.range_meter.second = sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::RANGE_FAR);
-  spatial_mapping_params.resolution_meter = sl::SpatialMappingParameters::get(sl::SpatialMappingParameters::RESOLUTION_LOW);
-  spatial_mapping_params.save_texture =true;
-  filter_params.set(sl::MeshFilterParameters::FILTER_LOW);
-  spatial_mapping_params.max_memory_usage=6*1024;
-  // Initialize OpenGL
+  setSpParam(spatial_mapping_params);
+  setFilterParam(filter_params);
+// Initialize OpenGL
   int res = initGL();
   if (res != 0) {
     std::cout << "Failed to initialize OpenGL" << std::endl;
@@ -204,7 +221,10 @@ void startMapping()
  * This function is called everytime the display needs to be refreshed (50 or 60Hz)
  **/
 void run(){
-  if (zed_.grab() == sl::SUCCESS){
+  zed_.setConfidenceThreshold(confidenceThresh);//0-100 0 is few depth point
+  sl::RuntimeParameters rt_param;
+  setRuntimeParam(rt_param);
+  if (zed_.grab(rt_param) == sl::SUCCESS){
     // Retrieve image in GPU and send it to OpenGL
     zed_.retrieveImage(left_image, sl::VIEW_LEFT, sl::MEM_GPU);
 

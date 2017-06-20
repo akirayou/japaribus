@@ -8,21 +8,22 @@ set "servo2" as accel
 #include "ros/ros.h"
 #include <ros/package.h>
 #include <geometry_msgs/Twist.h>
-#include  <std_msgs/UInt16.h>
+#include  <std_msgs/Int8MultiArray.h>
 #include <cmath>
 using namespace std;
 
-ros::Publisher servo1_pub,servo2_pub;
+ros::Publisher servo_pub;
 void cmdCallback (const geometry_msgs::Twist &cmd) {
   double acc=cmd.linear.x;
   double dir=cmd.angular.z;
-  std_msgs::UInt16 msg;
-  acc=90+acc*30;
-  msg.data=max(60.0,min(120.0,acc));
-  servo1_pub.publish(msg);
-  dir=90+dir*20;
-  msg.data=max(60.0,min(120.0,dir));
-  servo2_pub.publish(msg);
+  std_msgs::Int8MultiArray msg;
+  msg.data.clear();
+
+  acc=acc*2;
+  msg.data.push_back((char)acc);
+  dir*=-20;
+  msg.data.push_back((char)dir);
+  servo_pub.publish(msg);
 }
 
 
@@ -37,8 +38,7 @@ int main(int argc, char **argv)
   ros::Subscriber sub = node_handle.subscribe("cmd_vel",2,cmdCallback);
 
 
-  servo1_pub = node_handle.advertise<std_msgs::UInt16>("servo1", 1);
-  servo2_pub = node_handle.advertise<std_msgs::UInt16>("servo2", 1);
+  servo_pub = node_handle.advertise<std_msgs::Int8MultiArray>("indicator", 1);
 
 
   while (ros::ok())

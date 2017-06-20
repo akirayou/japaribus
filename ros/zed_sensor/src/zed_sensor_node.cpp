@@ -251,8 +251,11 @@ int main(int argc, char **argv)
 
   area_path += "/data/now.area";
   trackParams.area_file_path = area_path.c_str();
-  trackParams.area_file_path = "";
-
+  
+  if(1){
+    sleep(5);
+    trackParams.area_file_path = "";
+  }
   int width = zed->getResolution().width;
   int height = zed->getResolution().height;
 
