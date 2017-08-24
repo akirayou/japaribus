@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+  <arg name="pi/2" value="1.5707963267948966" />
+  <arg name="optical_rotate" value="0 0 0 -$(arg pi/2) 0 -$(arg pi/2) " />
+  <arg name="optical_rotate_n" value="0 0 0 0 0 0" />
+
+
+
+  <node name="$(anon tf_mesh_map)"
+	pkg="tf" type="static_transform_publisher"
+	args="0 0 0.5 0 0 0 world mesh_map 100" /> <!-- correct Z base line offset (just for view) -->
+  <node name="$(anon tf_map)"
+	pkg="tf" type="static_transform_publisher"
+	args="0 0 0 0 0 0 world map 100" />
+  
+  
+  <node name="$(anon st_pub)"
+	pkg="st_pub" type="st_pub_node" />
+  <node name="$(anon st_pub_plan)"
+	pkg="st_pub" type="st_pub_plan" output="screen" />
+
+  <!-- danger detector-->
+  <node name="$(anon zed_sensor)"
+	pkg="zed_sensor" type="zed_sensor_node" output="screen" />
+  <!-- BUS POSITION1: Connect ZED camera as bus position-->
+  
+  <node name="$(anon tf_camopt)"
+	pkg="tf" type="static_transform_publisher"
+	args="0 0 0 0 0 -$(arg pi/2) bus_cam bus_cam_opt 100" />
+  <node name="$(anon tf_bus_cam)"
+	pkg="tf" type="static_transform_publisher"
+	args="0 0 0 0 0 0 bus_cam bus 100" />
+
+  
+  <!-- BUS POSITION2: joystick control(connect joystick as bus position [for simulation]) -->
+  <!--  
+  <node name="$(anon joy_node)"
+	pkg="joy" type="joy_node" />
+  <node name="$(anon st_pub_sim)"
+  pkg="st_pub" type="st_pub_bus_joy" output="screen" />
+  -->
+  <!-- BUS POSITION3:auto run test -->
+  <!--
+  <node name="$(anon st_pub_sim)"
+	pkg="st_pub" type="st_pub_sim" output="screen" />
+  -->
+
+
+
+  
+  <!-- indicator for bus_cont -->
+  <node name="$(anon serial_node)"
+	pkg="rosserial_python" type="serial_node.py" args=" _port:=/dev/ttyACM0"/>
+  <node name="$(anon st_pub_cont_to_servo)"
+	pkg="st_pub" type="st_pub_cont_to_servo" output="screen" />
+
+
+  
+  <!-- make bus control signal from target posision -->
+  <node name="$(anon st_pub_bus_cont)"
+	pkg="st_pub" type="st_pub_bus_cont" output="screen" />
+  
+
+  
+  <node pkg="rviz" type="rviz" name="$(anon rviz)" args="-d $(find st_pub)/data/st.rviz" />
+	
+
+</launch>
